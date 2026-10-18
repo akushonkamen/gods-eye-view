@@ -180,6 +180,46 @@ test('refused web storage never auto-reloads', () => {
   );
 });
 
+test('a store whose reads work but writes throw fail closed: no durable flag, no reload', () => {
+  // Quota-exceeded / privacy-restricted storage: getItem returns null (a
+  // fresh boot looks reload-eligible) but setItem throws, so the cooldown
+  // can never arm and an auto-reload would loop unboundedly.
+  const storage = {
+    getItem: () => null,
+    setItem: () => {
+      throw new Error('quota exceeded');
+    },
+  };
+  assert.equal(
+    canReloadAfterContextLoss({ sessionStorage: storage, now: () => 1_000_000 }),
+    true,
+  );
+  assert.equal(
+    markContextLossReload({ sessionStorage: storage, now: () => 1_000_000 }),
+    false,
+  );
+});
+
+test('an absent store cannot hold the cooldown flag, so reload is refused', () => {
+  assert.equal(
+    canReloadAfterContextLoss({ sessionStorage: undefined, now: () => 0 }),
+    true,
+  );
+  assert.equal(
+    markContextLossReload({ sessionStorage: undefined, now: () => 0 }),
+    false,
+  );
+});
+
+test('markContextLossReload returns true when the flag is durably written', () => {
+  const storage = createFakeStorage();
+  assert.equal(
+    markContextLossReload({ sessionStorage: storage, now: () => 1_000_000 }),
+    true,
+  );
+  assert.equal(storage.getItem('gev:context-loss-reload-at'), '1000000');
+});
+
 test('the notice is idempotent and only the terminal case offers reload', () => {
   const documentRef = createFakeDocument();
   const location = { reload: () => {} };

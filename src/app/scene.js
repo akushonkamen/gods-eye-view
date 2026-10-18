@@ -79,7 +79,13 @@ export async function createApplicationScene({
         showContextLossNotice({ allowManualReload: true });
         return;
       }
-      markContextLossReload();
+      // Fail-closed: reload only when the cooldown flag was durably written.
+      // A storage that refuses writes can never arm the cooldown, so an
+      // automatic reload here would loop unboundedly on repeated losses.
+      if (!markContextLossReload()) {
+        showContextLossNotice({ allowManualReload: true });
+        return;
+      }
       showContextLossNotice({ message: 'Restoring the 3D globe…' });
       window.location.reload();
     },

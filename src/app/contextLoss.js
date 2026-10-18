@@ -213,8 +213,12 @@ export function canReloadAfterContextLoss({
 
 /**
  * Record that a recovery reload is starting, arming the cooldown window.
+ * Fail-closed: the caller must only auto-reload when this reports the marker
+ * was durably written. Storage that accepts reads but refuses writes (quota,
+ * privacy restrictions) would otherwise never see the flag on the next boot
+ * and grant an unbounded reload cycle; an absent store cannot hold one.
  * @param {{sessionStorage?:Storage, now?:Function}} [options] Injectable for tests.
- * @returns {void}
+ * @returns {boolean} Whether the cooldown flag was written successfully.
  */
 export function markContextLossReload({
   sessionStorage = globalThis.sessionStorage,
@@ -222,8 +226,8 @@ export function markContextLossReload({
 } = {}) {
   try {
     sessionStorage?.setItem(RELOAD_FLAG, String(now()));
+    return sessionStorage != null;
   } catch {
-    // Unreachable after canReloadAfterContextLoss refused the same storage;
-    // without the flag the cooldown simply does not arm.
+    return false;
   }
 }
