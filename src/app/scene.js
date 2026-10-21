@@ -21,7 +21,7 @@ import {
   governorRequestRender,
 } from '../renderGovernor.js';
 import { describeError } from './errors.js';
-import { t } from '../i18n/index.js';
+import { msg, t } from '../i18n/index.js';
 
 /** Construct the application globe using the caller's local configuration. */
 export async function createApplicationScene({
@@ -87,7 +87,7 @@ export async function createApplicationScene({
         showContextLossNotice({ allowManualReload: true });
         return;
       }
-      showContextLossNotice({ message: 'Restoring the 3D globe…' });
+      showContextLossNotice({ message: msg('Restoring the 3D globe…') });
       window.location.reload();
     },
   });

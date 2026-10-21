@@ -31,6 +31,8 @@
  * never reload, and keeps its own notice-based UX.
  */
 
+import { msg } from '../i18n/marker.js';
+
 const NOTICE_ID = 'gev-context-loss-notice';
 
 /**
@@ -138,7 +140,7 @@ export function showContextLossNotice({
     });
     documentRef.body.appendChild(notice);
   }
-  const text = message ?? "God's Eye View lost its 3D graphics context.";
+  const text = message ?? msg("God's Eye View lost its 3D graphics context.");
   let body = notice.querySelector('span');
   if (!body) {
     body = documentRef.createElement('span');
@@ -149,7 +151,7 @@ export function showContextLossNotice({
   if (allowManualReload && !button) {
     button = documentRef.createElement('button');
     button.type = 'button';
-    button.textContent = 'Reload';
+    button.textContent = msg('Reload');
     Object.assign(button.style, {
       marginLeft: '12px',
       padding: '4px 14px',

@@ -26,6 +26,7 @@
       "src/app/viewer.js",
       "src/app/atmosphereCompat.js",
       "src/app/contextLoss.js",
+      "src/i18n/marker.js",
       "src/sky/starrySky.js",
       "src/sky/stars.js",
       "src/data/bundledJson.js",
