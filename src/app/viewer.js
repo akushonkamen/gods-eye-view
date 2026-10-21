@@ -1,6 +1,7 @@
 import * as Cesium from 'cesium';
 import { applyModelAtmosphereWorkaround } from './atmosphereCompat.js';
 import { installContextLossGuard } from './contextLoss.js';
+import { StarrySky } from '../sky/starrySky.js';
 
 const PINCH_ZOOM_MULTIPLIER = 8;
 const MAX_PINCH_PIXEL_DELTA = 120;
@@ -103,16 +104,9 @@ export function installTrackpadPinchZoom(
   };
 }
 
-/** Create the standard globe viewer in caller-owned, visible containers. */
-export function createApplicationViewer({
-  container,
-  creditContainer,
-  onContextLoss,
-  onContextRestored,
-}) {
-  if (!container || !creditContainer)
-    throw new TypeError('Viewer and credit containers are required');
-  const viewer = new Cesium.Viewer(container, {
+/** Cesium.Viewer options of the standard globe viewer. */
+export function applicationViewerOptions(creditContainer) {
+  return {
     timeline: false,
     animation: false,
     baseLayerPicker: false,
@@ -125,10 +119,28 @@ export function createApplicationViewer({
     selectionIndicator: false,
     infoBox: false,
     baseLayer: false,
+    // Replaces the blocky Tycho-2 default. An option, not `skyBox: false`,
+    // which would also stop CesiumWidget from creating the Sun and Moon.
+    skyBox: new StarrySky(),
     creditContainer,
     msaaSamples: 4,
     contextOptions: { webgl: { preserveDrawingBuffer: true } },
-  });
+  };
+}
+
+/** Create the standard globe viewer in caller-owned, visible containers. */
+export function createApplicationViewer({
+  container,
+  creditContainer,
+  onContextLoss,
+  onContextRestored,
+}) {
+  if (!container || !creditContainer)
+    throw new TypeError('Viewer and credit containers are required');
+  const viewer = new Cesium.Viewer(
+    container,
+    applicationViewerOptions(creditContainer),
+  );
   // Before anything can render: Cesium has no context-loss handling of its
   // own (CesiumGS/cesium#5991), so a dropped or evicted WebGL context kills
   // the render loop on the next frame with DeveloperError(width > 0) behind
